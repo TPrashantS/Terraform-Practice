@@ -8,6 +8,11 @@ output "subnet_id" {
   value       = data.aws_subnet.existing.id
 }
 
+output "security_group_id" {
+  description = "ID of the existing security group"
+  value       = data.aws_security_group.existing.id
+}
+
 output "instance_id" {
   description = "ID of the created EC2 instance"
   value       = aws_instance.prash_ec2.id
