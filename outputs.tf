@@ -1,11 +1,11 @@
 output "vpc_id" {
   description = "ID of the created VPC"
-  value       = aws_vpc.main.id
+  value       = aws_vpc.prash-main.id
 }
 
 output "vpc_cidr" {
   description = "CIDR block of the VPC"
-  value       = aws_vpc.main.cidr_block
+  value       = aws_vpc.prash-main.cidr_block
 }
 
 output "subnet_id" {
