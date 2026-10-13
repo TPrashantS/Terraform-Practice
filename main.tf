@@ -1,33 +1,47 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 6.0"
-    }
+data "aws_vpc" "existing" {
+  id = var.vpc_id
+}
+
+data "aws_subnet" "existing" {
+  id = var.subnet_id
+}
+
+data "aws_security_group" "existing" {
+  id = var.security_group_id
+}
+
+# Find the latest Amazon Linux 2023 AMI
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023.*-x86_64"]
   }
 }
 
-provider "aws" {
-  region = var.aws_region
-}
+# Creating the EC2 instance in the existing subnet
+resource "aws_instance" "prash_ec2" {
+  ami           = data.aws_ami.amazon_linux.id
+  instance_type = var.instance_type
+  subnet_id     = data.aws_subnet.existing.id
 
-resource "aws_vpc" "prash_main" {
-  cidr_block           = var.vpc_cidr
-  enable_dns_support   = true
-  enable_dns_hostnames = true
+  vpc_security_group_ids = [
+    data.aws_security_group.existing.id
+  ]
+
+  associate_public_ip_address = false
 
   tags = {
-    Name        = "terraform-practice-vpc"
+    Name        = "terraform-practice-ec2"
     Environment = "Learning"
   }
-}
 
-resource "aws_subnet" "public" {
-  vpc_id                  = aws_vpc.prash_main.id
-  cidr_block              = var.subnet_cidr
-  map_public_ip_on_launch = false
-
-  tags = {
-    Name = "terraform-practice-subnet"
-  }
+  lifecycle {
+        precondition {
+            condition = (data.aws_subnet.existing.vpc_id == data.aws_vpc.existing.id)
+            error_message = "The selected subnet must belong to the selected VPC."
+        }
+    }
 }
